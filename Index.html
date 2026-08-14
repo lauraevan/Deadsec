@@ -1,0 +1,1266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <meta name="description" content="Deadsec cloud game library.">
+  <title>Deadsec Cloud</title>
+  <style>
+    :root{
+      --red:#f0162f;
+      --red-bright:#ff263f;
+      --black:#050505;
+      --panel:#0a0a0a;
+      --panel-2:#101010;
+      --line:#272727;
+      --muted:#858585;
+      --white:#f4f4f2;
+      --header:72px;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth;background:var(--black)}
+    body{
+      margin:0;
+      min-width:320px;
+      background:
+        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+        var(--black);
+      background-size:100% 46px;
+      color:var(--white);
+      font-family:"Arial Narrow","Helvetica Neue",Arial,sans-serif;
+      overflow-x:hidden;
+    }
+    button,input{font:inherit}
+    button{color:inherit}
+    a{color:inherit;text-decoration:none}
+    ::selection{background:var(--red);color:white}
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-track{background:#080808}
+    ::-webkit-scrollbar-thumb{background:#313131}
+    ::-webkit-scrollbar-thumb:hover{background:var(--red)}
+    :focus-visible{outline:1px solid var(--red-bright);outline-offset:3px}
+    .topbar{
+      position:fixed;
+      inset:0 0 auto;
+      z-index:60;
+      height:var(--header);
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:42px;
+      padding:0 clamp(18px,4vw,70px);
+      background:rgba(5,5,5,.94);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:blur(14px);
+    }
+    .topbar::after{
+      content:"";
+      position:absolute;
+      left:0;
+      bottom:-1px;
+      width:22%;
+      height:1px;
+      background:var(--red);
+      box-shadow:0 0 18px rgba(240,22,47,.55);
+    }
+    .brand{
+      display:flex;
+      align-items:baseline;
+      font-size:24px;
+      font-weight:900;
+      letter-spacing:-1.5px;
+      text-transform:lowercase;
+    }
+    .brand span{color:var(--red-bright)}
+    .brand b{
+      margin-left:9px;
+      color:#575757;
+      font:700 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:2px;
+    }
+    .nav{
+      display:flex;
+      align-items:center;
+      gap:28px;
+      height:100%;
+    }
+    .nav button{
+      position:relative;
+      height:100%;
+      padding:0;
+      border:0;
+      background:none;
+      color:#787878;
+      cursor:pointer;
+      font-size:10px;
+      font-weight:800;
+      letter-spacing:2.2px;
+      text-transform:uppercase;
+    }
+    .nav button.active,.nav button:hover{color:var(--white)}
+    .nav button.active::after{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      height:2px;
+      background:var(--red);
+      box-shadow:0 0 12px rgba(240,22,47,.55);
+    }
+    .header-tools{display:flex;align-items:center;gap:18px}
+    .network{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:#777;
+      font:700 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.4px;
+      text-transform:uppercase;
+    }
+    .network i{
+      width:6px;height:6px;background:var(--red);
+      box-shadow:0 0 12px rgba(240,22,47,.9);
+    }
+    .search-jump{
+      width:42px;height:42px;
+      display:grid;place-items:center;
+      padding:0;
+      border:1px solid var(--line);
+      background:#090909;
+      cursor:pointer;
+    }
+    .search-jump:hover{border-color:var(--red);background:#11080a}
+    .search-icon{
+      width:14px;height:14px;
+      border:1.5px solid #aaa;
+      position:relative;
+    }
+    .search-icon::after{
+      content:"";
+      position:absolute;
+      width:6px;height:1.5px;
+      right:-5px;bottom:-3px;
+      background:#aaa;
+      transform:rotate(45deg);
+      transform-origin:left center;
+    }
+    main{padding-top:var(--header)}
+    .hero{
+      position:relative;
+      min-height:clamp(430px,62vw,690px);
+      max-height:760px;
+      display:flex;
+      align-items:flex-end;
+      overflow:hidden;
+      border-bottom:1px solid var(--line);
+      background:#080808 center 24%/cover no-repeat;
+      isolation:isolate;
+    }
+    .hero::before{
+      content:"";
+      position:absolute;inset:0;z-index:-1;
+      background:
+        linear-gradient(90deg,#050505 0%,rgba(5,5,5,.94) 20%,rgba(5,5,5,.45) 56%,rgba(5,5,5,.12) 100%),
+        linear-gradient(0deg,#050505 0%,rgba(5,5,5,.2) 50%,rgba(5,5,5,.28) 100%);
+    }
+    .hero::after{
+      content:"";
+      position:absolute;
+      right:-9vw;top:0;bottom:0;width:31vw;z-index:-1;
+      background:linear-gradient(90deg,transparent,rgba(240,22,47,.13));
+      border-left:1px solid rgba(240,22,47,.38);
+      transform:skewX(-12deg);
+      box-shadow:-20px 0 50px rgba(240,22,47,.08);
+    }
+    .scan{
+      pointer-events:none;
+      position:absolute;inset:0;
+      opacity:.22;
+      background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.028) 3px 4px);
+      mix-blend-mode:screen;
+    }
+    .hero-index{
+      position:absolute;left:clamp(18px,4vw,70px);top:42px;
+      display:flex;gap:7px;
+    }
+    .hero-index button{
+      width:34px;height:3px;padding:0;
+      border:0;background:#565656;
+      cursor:pointer;
+    }
+    .hero-index button.active{background:var(--red);box-shadow:0 0 12px rgba(240,22,47,.55)}
+    .hero-copy{
+      position:relative;
+      width:min(760px,80%);
+      padding:0 clamp(18px,4vw,70px) clamp(46px,6vw,84px);
+    }
+    .eyebrow{
+      display:flex;align-items:center;gap:12px;
+      margin:0 0 14px;
+      color:#a8a8a8;
+      font:700 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:2.6px;
+      text-transform:uppercase;
+    }
+    .eyebrow::before{content:"";width:30px;height:1px;background:var(--red)}
+    .hero h1{
+      margin:0;
+      max-width:760px;
+      font-size:clamp(50px,7.6vw,112px);
+      line-height:.86;
+      letter-spacing:-5px;
+      text-transform:uppercase;
+      text-wrap:balance;
+      text-shadow:0 4px 30px rgba(0,0,0,.5);
+    }
+    .hero-meta{
+      display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;
+      margin-top:25px;
+    }
+    .hero-tags{
+      display:flex;align-items:center;flex-wrap:wrap;gap:7px;
+      color:#b0b0b0;
+      font:700 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.3px;
+      text-transform:uppercase;
+    }
+    .hero-tags span{padding-right:8px;border-right:1px solid #4d4d4d}
+    .hero-tags span:last-child{border:0}
+    .play{
+      height:48px;
+      display:inline-flex;align-items:center;gap:13px;
+      padding:0 24px;
+      border:1px solid var(--red);
+      background:var(--red);
+      color:white;
+      cursor:pointer;
+      font-size:11px;font-weight:900;letter-spacing:2.1px;
+      text-transform:uppercase;
+      box-shadow:0 0 24px rgba(240,22,47,.18);
+    }
+    .play:hover{background:#b90c22;border-color:#ff4459}
+    .play .tri{
+      width:0;height:0;
+      border-top:5px solid transparent;
+      border-bottom:5px solid transparent;
+      border-left:8px solid white;
+    }
+    .hero-count{
+      position:absolute;
+      right:clamp(18px,4vw,70px);
+      bottom:clamp(48px,6vw,86px);
+      display:grid;justify-items:end;gap:7px;
+      color:#696969;
+      font:700 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:2px;
+      text-transform:uppercase;
+    }
+    .hero-count strong{
+      color:white;
+      font:900 34px/.8 "Arial Narrow","Helvetica Neue",sans-serif;
+      letter-spacing:-2px;
+    }
+    .library{
+      padding:46px 0 90px;
+      border-top:1px solid #111;
+    }
+    .library-head{
+      display:grid;
+      grid-template-columns:auto 1fr;
+      gap:55px;
+      align-items:end;
+      padding:0 clamp(18px,4vw,70px) 28px;
+    }
+    .section-title{margin:0;font-size:30px;line-height:1;font-weight:900;letter-spacing:-1px;text-transform:uppercase}
+    .section-title small{
+      display:block;
+      margin-bottom:10px;
+      color:var(--red);
+      font:800 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:2.2px;
+    }
+    .searchbar{
+      display:grid;
+      grid-template-columns:20px 1fr auto;
+      align-items:center;
+      gap:13px;
+      height:50px;
+      border-bottom:1px solid #3a3a3a;
+    }
+    .searchbar:focus-within{border-color:var(--red)}
+    .searchbar .search-icon{transform:scale(.8)}
+    .searchbar input{
+      width:100%;height:100%;
+      border:0;outline:0;
+      background:transparent;color:white;
+      font-size:15px;letter-spacing:.2px;
+    }
+    .searchbar input::placeholder{color:#595959}
+    .searchbar .key{
+      border:1px solid #333;
+      padding:5px 7px;
+      color:#676767;
+      font:700 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1px;
+    }
+    .filters{
+      display:flex;gap:7px;
+      overflow-x:auto;
+      padding:0 clamp(18px,4vw,70px) 18px;
+      scrollbar-width:none;
+    }
+    .filters::-webkit-scrollbar{display:none}
+    .filter{
+      flex:0 0 auto;
+      height:34px;
+      padding:0 15px;
+      border:1px solid #2d2d2d;
+      background:#090909;
+      color:#787878;
+      cursor:pointer;
+      font:800 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+    }
+    .filter:hover{color:white;border-color:#555}
+    .filter.active{color:white;border-color:var(--red);background:#17080b}
+    .rows{display:block}
+    .game-row{
+      margin-top:32px;
+      padding-bottom:24px;
+      border-bottom:1px solid #171717;
+    }
+    .row-head{
+      display:flex;align-items:end;justify-content:space-between;
+      padding:0 clamp(18px,4vw,70px) 13px;
+    }
+    .row-label{
+      display:flex;align-items:center;gap:14px;
+      margin:0;
+      font-size:13px;font-weight:900;letter-spacing:2.2px;
+      text-transform:uppercase;
+    }
+    .row-label b{
+      color:var(--red);
+      font:800 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1px;
+    }
+    .row-controls{display:flex;gap:5px}
+    .row-controls button{
+      width:32px;height:27px;
+      padding:0;border:1px solid #292929;background:#090909;color:#777;
+      cursor:pointer;
+    }
+    .row-controls button:hover{border-color:var(--red);color:white}
+    .rail{
+      display:flex;
+      gap:12px;
+      overflow-x:auto;
+      padding:0 clamp(18px,4vw,70px) 10px;
+      scroll-padding-inline:clamp(18px,4vw,70px);
+      scrollbar-width:none;
+      overscroll-behavior-inline:contain;
+    }
+    .rail::-webkit-scrollbar{display:none}
+    .card{
+      position:relative;
+      flex:0 0 clamp(248px,24vw,350px);
+      aspect-ratio:16/9;
+      padding:0;
+      overflow:hidden;
+      border:1px solid #292929;
+      background:#111;
+      cursor:pointer;
+      text-align:left;
+      isolation:isolate;
+    }
+    .card::before{
+      content:"";
+      position:absolute;inset:0;z-index:1;
+      background:linear-gradient(0deg,rgba(0,0,0,.94),transparent 58%);
+    }
+    .card::after{
+      content:"";
+      position:absolute;inset:auto 0 0;z-index:3;height:2px;
+      background:var(--red);
+      transform:scaleX(0);
+      transform-origin:left;
+      transition:transform .18s ease;
+      box-shadow:0 0 16px rgba(240,22,47,.7);
+    }
+    .card:hover::after,.card:focus-visible::after{transform:scaleX(1)}
+    .card img{
+      width:100%;height:100%;display:block;object-fit:cover;
+      filter:saturate(.82) contrast(1.04);
+      transition:transform .35s ease,filter .35s ease;
+    }
+    .card:hover img{transform:scale(1.025);filter:saturate(1) contrast(1.06)}
+    .card-copy{
+      position:absolute;z-index:2;
+      left:14px;right:14px;bottom:12px;
+    }
+    .card-title{
+      display:block;
+      overflow:hidden;
+      color:white;
+      font-size:14px;font-weight:900;line-height:1.1;
+      text-overflow:ellipsis;white-space:nowrap;
+      text-transform:uppercase;
+      text-shadow:0 2px 10px black;
+    }
+    .card-tags{
+      display:block;margin-top:6px;
+      overflow:hidden;
+      color:#909090;
+      font:700 8px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.2px;
+      text-overflow:ellipsis;white-space:nowrap;text-transform:uppercase;
+    }
+    .card-code{
+      position:absolute;z-index:2;right:9px;top:8px;
+      padding:5px 6px;
+      background:rgba(0,0,0,.72);color:#888;
+      font:700 8px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1px;
+    }
+    .img-fail{background:linear-gradient(125deg,#121212,#26090e)}
+    .search-results{display:none;padding:23px clamp(18px,4vw,70px)}
+    .search-results.active{display:block}
+    .result-meta{
+      display:flex;justify-content:space-between;
+      margin:0 0 16px;
+      color:#777;
+      font:700 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.6px;text-transform:uppercase;
+    }
+    .result-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+    .result-grid .card{width:100%;min-width:0}
+    .empty{
+      grid-column:1/-1;
+      min-height:190px;
+      display:grid;place-items:center;
+      border:1px solid #242424;
+      color:#666;
+      font:800 10px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:2px;text-transform:uppercase;
+    }
+    .skeleton{position:relative;overflow:hidden;background:#111;border-color:#191919}
+    .skeleton::before{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.035),transparent);
+      transform:translateX(-100%);
+      animation:sweep 1.5s infinite;
+    }
+    @keyframes sweep{to{transform:translateX(100%)}}
+    .drawer-wrap{
+      position:fixed;inset:0;z-index:90;
+      display:none;
+      background:rgba(0,0,0,.74);
+      backdrop-filter:blur(4px);
+    }
+    .drawer-wrap.open{display:block}
+    .drawer{
+      position:absolute;right:0;top:0;bottom:0;
+      width:min(480px,100%);
+      overflow:auto;
+      background:#080808;
+      border-left:1px solid #393939;
+      box-shadow:-20px 0 80px rgba(0,0,0,.6);
+      animation:drawer-in .22s ease both;
+    }
+    @keyframes drawer-in{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+    .drawer-close{
+      position:absolute;z-index:3;right:14px;top:14px;
+      width:42px;height:42px;
+      border:1px solid #4a4a4a;background:rgba(5,5,5,.88);
+      color:white;cursor:pointer;font-size:22px;
+    }
+    .drawer-close:hover{border-color:var(--red);background:#1a080b}
+    .drawer-art{
+      position:relative;
+      aspect-ratio:16/10;
+      overflow:hidden;background:#111;
+      border-bottom:1px solid #292929;
+    }
+    .drawer-art::after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(0deg,#080808,transparent 64%),linear-gradient(90deg,rgba(240,22,47,.12),transparent 40%);
+    }
+    .drawer-art img{width:100%;height:100%;object-fit:cover}
+    .drawer-body{padding:8px 28px 34px}
+    .drawer-code{
+      margin:0 0 13px;color:var(--red);
+      font:800 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:2px;text-transform:uppercase;
+    }
+    .drawer h2{margin:0;font-size:44px;line-height:.94;letter-spacing:-2.3px;text-transform:uppercase}
+    .drawer-tags{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0}
+    .drawer-tags span{
+      border:1px solid #343434;padding:7px 9px;color:#999;
+      font:800 8px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.2px;text-transform:uppercase;
+    }
+    .drawer-desc{
+      min-height:42px;margin:0 0 26px;
+      color:#858585;font-size:13px;line-height:1.65;
+    }
+    .drawer .play{width:100%;justify-content:center}
+    .player{
+      position:fixed;inset:0;z-index:120;
+      display:none;
+      background:#000;
+    }
+    .player.open{display:grid;grid-template-rows:58px 1fr}
+    .player-bar{
+      display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+      align-items:center;gap:16px;
+      min-width:0;padding:0 14px 0 20px;
+      border-bottom:1px solid #2c2c2c;background:#060606;
+    }
+    .player-title{
+      min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      font-size:12px;font-weight:900;letter-spacing:1.6px;text-transform:uppercase;
+    }
+    .player-title b{color:var(--red);margin-right:10px}
+    .player-state{
+      color:#888;
+      font:800 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.4px;text-transform:uppercase;
+    }
+    .player-state.live{color:#ff6d7c}
+    .player-actions{display:flex;gap:6px}
+    .player-actions button{
+      height:34px;padding:0 13px;
+      border:1px solid #303030;background:#0c0c0c;color:#aaa;
+      cursor:pointer;
+      font:800 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.2px;text-transform:uppercase;
+    }
+    .player-actions button:hover{color:white;border-color:var(--red)}
+    .player-stage{position:relative;min-height:0;background:#030303;overflow:hidden}
+    .player-stage iframe{display:none;width:100%;height:100%;border:0;background:#000}
+    .player-stage.ready iframe{display:block}
+    .session-loader{
+      position:absolute;inset:0;
+      display:grid;place-items:center;
+      background:
+        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+        #050505;
+      background-size:46px 46px;
+    }
+    .session-loader.hidden{display:none}
+    .loader-core{width:min(430px,calc(100vw - 40px))}
+    .loader-mark{
+      width:20px;height:20px;margin-bottom:26px;background:var(--red);
+      box-shadow:0 0 25px rgba(240,22,47,.48);
+      animation:block-pulse .8s steps(2,end) infinite;
+    }
+    @keyframes block-pulse{50%{opacity:.25}}
+    .loader-label{
+      margin:0 0 9px;color:#777;
+      font:800 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:2px;text-transform:uppercase;
+    }
+    .loader-text{
+      margin:0 0 24px;
+      font-size:28px;font-weight:900;letter-spacing:-.8px;text-transform:uppercase;
+    }
+    .loader-segments{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+    .loader-segments i{height:3px;background:#252525}
+    .loader-segments i.on{background:var(--red);box-shadow:0 0 12px rgba(240,22,47,.6)}
+    .queue-note{
+      min-height:16px;margin-top:16px;color:#666;
+      font:700 9px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.2px;text-transform:uppercase;
+    }
+    .retry{
+      display:none;margin-top:22px;height:42px;padding:0 20px;
+      border:1px solid var(--red);background:transparent;color:white;cursor:pointer;
+      font:800 9px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.5px;text-transform:uppercase;
+    }
+    .retry.show{display:inline-block}
+    footer{
+      display:flex;align-items:center;justify-content:space-between;
+      min-height:76px;padding:0 clamp(18px,4vw,70px);
+      border-top:1px solid #212121;color:#575757;
+      font:700 8px/1 ui-monospace,SFMono-Regular,Consolas,monospace;
+      letter-spacing:1.5px;text-transform:uppercase;
+    }
+    @media(max-width:900px){
+      :root{--header:62px}
+      .topbar{gap:18px}
+      .nav{display:none}
+      .topbar{grid-template-columns:1fr auto}
+      .header-tools{grid-column:2}
+      .hero{min-height:540px;background-position:58% center}
+      .hero-copy{width:92%;padding-bottom:48px}
+      .hero h1{font-size:clamp(48px,12vw,86px);letter-spacing:-3px}
+      .hero-count{display:none}
+      .library-head{grid-template-columns:1fr;gap:24px}
+      .result-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media(max-width:560px){
+      .topbar{padding-inline:15px}
+      .network span{display:none}
+      .search-jump{width:36px;height:36px}
+      .hero{min-height:500px}
+      .hero::before{background:linear-gradient(90deg,#050505 0%,rgba(5,5,5,.8) 50%,rgba(5,5,5,.25)),linear-gradient(0deg,#050505,transparent 70%)}
+      .hero-index{top:24px;left:15px}
+      .hero-copy{width:100%;padding:0 15px 34px}
+      .hero h1{font-size:clamp(44px,15vw,72px);line-height:.9}
+      .hero-meta{align-items:flex-start;flex-direction:column}
+      .play{height:45px}
+      .library{padding-top:32px}
+      .section-title{font-size:26px}
+      .library-head{padding-inline:15px}
+      .filters,.rail{padding-inline:15px}
+      .row-head{padding-inline:15px}
+      .row-controls{display:none}
+      .card{flex-basis:238px}
+      .result-grid{grid-template-columns:1fr 1fr;gap:8px}
+      .result-grid .card{aspect-ratio:1.25}
+      .result-grid .card-title{font-size:11px}
+      .drawer h2{font-size:38px}
+      .drawer-body{padding-inline:20px}
+      .player-bar{grid-template-columns:1fr auto;padding-left:13px}
+      .player-state{display:none}
+      .player-actions button:first-child{display:none}
+      footer{align-items:flex-start;flex-direction:column;justify-content:center;gap:8px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Deadsec home">dead<span>sec</span><b>//CLOUD</b></a>
+    <nav class="nav" aria-label="Primary navigation">
+      <button class="active" data-jump="library">Library</button>
+      <button data-jump="filters">Categories</button>
+    </nav>
+    <div class="header-tools">
+      <div class="network"><i></i><span>network online</span></div>
+      <button class="search-jump" id="searchJump" aria-label="Search games"><span class="search-icon"></span></button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" id="hero" aria-label="Featured game">
+      <div class="scan"></div>
+      <div class="hero-index" id="heroIndex" aria-label="Featured titles"></div>
+      <div class="hero-copy">
+        <p class="eyebrow">Featured transmission</p>
+        <h1 id="heroTitle">Deadsec</h1>
+        <div class="hero-meta">
+          <button class="play" id="heroPlay"><span class="tri"></span>Play now</button>
+          <div class="hero-tags" id="heroTags"><span>Cloud</span><span>Loading</span></div>
+        </div>
+      </div>
+      <div class="hero-count"><strong id="gameCount">—</strong><span>titles online</span></div>
+    </section>
+
+    <section class="library" id="library">
+      <div class="library-head">
+        <h2 class="section-title"><small>Catalog / 01</small>Game library</h2>
+        <label class="searchbar" for="searchInput">
+          <span class="search-icon"></span>
+          <input id="searchInput" type="search" autocomplete="off" placeholder="Search titles" aria-label="Search titles">
+          <span class="key">⌘ K</span>
+        </label>
+      </div>
+      <div class="filters" id="filters" aria-label="Game categories"></div>
+      <div class="rows" id="rows" aria-live="polite"></div>
+      <div class="search-results" id="searchResults">
+        <p class="result-meta"><span id="resultLabel">Results</span><span id="resultCount">0 titles</span></p>
+        <div class="result-grid" id="resultGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Deadsec // Stratus network</span>
+    <span id="footerCount">Catalog syncing</span>
+  </footer>
+
+  <div class="drawer-wrap" id="drawerWrap" aria-hidden="true">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+      <button class="drawer-close" id="drawerClose" aria-label="Close details">×</button>
+      <div class="drawer-art"><img id="drawerImage" alt=""></div>
+      <div class="drawer-body">
+        <p class="drawer-code" id="drawerCode">GAME / —</p>
+        <h2 id="drawerTitle">Title</h2>
+        <div class="drawer-tags" id="drawerTags"></div>
+        <p class="drawer-desc" id="drawerDesc"></p>
+        <button class="play" id="drawerPlay"><span class="tri"></span>Start session</button>
+      </div>
+    </aside>
+  </div>
+
+  <section class="player" id="player" aria-hidden="true">
+    <div class="player-bar">
+      <div class="player-title"><b>DS//</b><span id="playerTitle">Session</span></div>
+      <div class="player-state" id="playerState">Standby</div>
+      <div class="player-actions">
+        <button id="fullscreenButton">Fullscreen</button>
+        <button id="exitButton">Exit</button>
+      </div>
+    </div>
+    <div class="player-stage" id="playerStage">
+      <iframe id="gameFrame" title="Deadsec cloud gaming session" allow="autoplay; fullscreen; gamepad; clipboard-read; clipboard-write" referrerpolicy="no-referrer"></iframe>
+      <div class="session-loader" id="sessionLoader">
+        <div class="loader-core">
+          <div class="loader-mark"></div>
+          <p class="loader-label" id="loaderLabel">Stage 01 / 04</p>
+          <p class="loader-text" id="loaderText">Allocating cloud node</p>
+          <div class="loader-segments" id="loaderSegments"><i></i><i></i><i></i><i></i></div>
+          <div class="queue-note" id="queueNote"></div>
+          <button class="retry" id="retryButton">Retry session</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (function(){
+      "use strict";
+
+      var API_BASE = "https://stratus-api-1.onrender.com";
+      var CATALOG_URL = "https://raw.githubusercontent.com/SONICXVIP/stratus-api/main/cloud.json";
+      var games = [];
+      var featured = [];
+      var featuredIndex = 0;
+      var selectedGame = null;
+      var activeUuid = null;
+      var keepAliveTimer = null;
+      var playerOpen = false;
+      var currentCategory = "All";
+
+      var hero = document.getElementById("hero");
+      var heroTitle = document.getElementById("heroTitle");
+      var heroTags = document.getElementById("heroTags");
+      var heroIndex = document.getElementById("heroIndex");
+      var heroPlay = document.getElementById("heroPlay");
+      var searchInput = document.getElementById("searchInput");
+      var rows = document.getElementById("rows");
+      var filters = document.getElementById("filters");
+      var searchResults = document.getElementById("searchResults");
+      var resultGrid = document.getElementById("resultGrid");
+      var resultLabel = document.getElementById("resultLabel");
+      var resultCount = document.getElementById("resultCount");
+      var drawerWrap = document.getElementById("drawerWrap");
+      var drawerImage = document.getElementById("drawerImage");
+      var drawerTitle = document.getElementById("drawerTitle");
+      var drawerTags = document.getElementById("drawerTags");
+      var drawerDesc = document.getElementById("drawerDesc");
+      var drawerCode = document.getElementById("drawerCode");
+      var player = document.getElementById("player");
+      var playerStage = document.getElementById("playerStage");
+      var playerTitle = document.getElementById("playerTitle");
+      var playerState = document.getElementById("playerState");
+      var gameFrame = document.getElementById("gameFrame");
+      var sessionLoader = document.getElementById("sessionLoader");
+      var loaderLabel = document.getElementById("loaderLabel");
+      var loaderText = document.getElementById("loaderText");
+      var loaderSegments = document.getElementById("loaderSegments");
+      var queueNote = document.getElementById("queueNote");
+      var retryButton = document.getElementById("retryButton");
+
+      function safeUrl(value){
+        try{
+          var url = new URL(String(value || ""));
+          return url.protocol === "https:" || url.protocol === "http:" ? url.href : "";
+        }catch(_){ return ""; }
+      }
+
+      function validGame(game){
+        return game && typeof game.name === "string" && typeof game.game_key === "string";
+      }
+
+      function tagMatch(game, tag){
+        return Array.isArray(game.tags) && game.tags.some(function(item){
+          return String(item).toLowerCase() === tag.toLowerCase();
+        });
+      }
+
+      function setText(node, value){ node.textContent = String(value || ""); }
+
+      function makeTagList(target, tags){
+        target.replaceChildren();
+        (tags || []).slice(0,4).forEach(function(tag){
+          var item = document.createElement("span");
+          item.textContent = tag;
+          target.appendChild(item);
+        });
+      }
+
+      function imageFor(game, wide){
+        return safeUrl(wide ? (game.cover || game.image) : (game.image || game.cover));
+      }
+
+      function createCard(game){
+        var button = document.createElement("button");
+        button.className = "card";
+        button.type = "button";
+        button.setAttribute("aria-label", "View " + game.name);
+
+        var img = document.createElement("img");
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.alt = "";
+        img.referrerPolicy = "no-referrer";
+        img.src = imageFor(game, true);
+        img.addEventListener("error", function(){
+          if (img.dataset.fallback !== "1" && imageFor(game, false)){
+            img.dataset.fallback = "1";
+            img.src = imageFor(game, false);
+          } else {
+            img.remove();
+            button.classList.add("img-fail");
+          }
+        });
+
+        var code = document.createElement("span");
+        code.className = "card-code";
+        code.textContent = String(game.game_key).toUpperCase();
+
+        var copy = document.createElement("span");
+        copy.className = "card-copy";
+        var title = document.createElement("span");
+        title.className = "card-title";
+        title.textContent = game.name;
+        var tags = document.createElement("span");
+        tags.className = "card-tags";
+        tags.textContent = (game.tags || []).slice(0,3).join(" / ");
+        copy.append(title,tags);
+        button.append(img,code,copy);
+        button.addEventListener("click", function(){ openDrawer(game); });
+        return button;
+      }
+
+      function renderSkeletons(){
+        rows.replaceChildren();
+        for(var rowIndex=0; rowIndex<4; rowIndex++){
+          var section = document.createElement("section");
+          section.className = "game-row";
+          var head = document.createElement("div");
+          head.className = "row-head";
+          var label = document.createElement("h3");
+          label.className = "row-label";
+          label.textContent = "SYNCING";
+          head.appendChild(label);
+          var rail = document.createElement("div");
+          rail.className = "rail";
+          for(var i=0;i<5;i++){
+            var item = document.createElement("div");
+            item.className = "card skeleton";
+            rail.appendChild(item);
+          }
+          section.append(head,rail);
+          rows.appendChild(section);
+        }
+      }
+
+      var rowDefs = [
+        { label:"Latest drop", pick:function(list){ return list.slice(0,16); } },
+        { label:"Action", pick:function(list){ return list.filter(function(g){ return tagMatch(g,"Action"); }).slice(0,18); } },
+        { label:"Role playing", pick:function(list){ return list.filter(function(g){ return tagMatch(g,"RPG"); }).slice(0,18); } },
+        { label:"Multiplayer", pick:function(list){ return list.filter(function(g){ return tagMatch(g,"Multiplayer"); }).slice(0,18); } },
+        { label:"3A / Blockbusters", pick:function(list){ return list.filter(function(g){ return tagMatch(g,"3A"); }).slice(0,18); } },
+        { label:"Sport + racing", pick:function(list){ return list.filter(function(g){ return tagMatch(g,"Sports") || tagMatch(g,"Racing"); }).slice(0,18); } }
+      ];
+
+      function renderRows(){
+        rows.replaceChildren();
+        rowDefs.forEach(function(def,index){
+          var list = def.pick(games);
+          if(!list.length) return;
+          var section = document.createElement("section");
+          section.className = "game-row";
+
+          var head = document.createElement("div");
+          head.className = "row-head";
+          var label = document.createElement("h3");
+          label.className = "row-label";
+          var num = document.createElement("b");
+          num.textContent = String(index + 1).padStart(2,"0");
+          label.append(num,document.createTextNode(def.label));
+
+          var controls = document.createElement("div");
+          controls.className = "row-controls";
+          var prev = document.createElement("button");
+          var next = document.createElement("button");
+          prev.type = next.type = "button";
+          prev.textContent = "←";
+          next.textContent = "→";
+          prev.setAttribute("aria-label","Scroll " + def.label + " left");
+          next.setAttribute("aria-label","Scroll " + def.label + " right");
+          controls.append(prev,next);
+          head.append(label,controls);
+
+          var rail = document.createElement("div");
+          rail.className = "rail";
+          list.forEach(function(game){ rail.appendChild(createCard(game)); });
+          prev.addEventListener("click",function(){ rail.scrollBy({left:-rail.clientWidth * .8,behavior:"smooth"}); });
+          next.addEventListener("click",function(){ rail.scrollBy({left:rail.clientWidth * .8,behavior:"smooth"}); });
+
+          section.append(head,rail);
+          rows.appendChild(section);
+        });
+      }
+
+      function chooseFeatured(){
+        var names = ["Red Dead Redemption","Black Myth: Wukong","Battlefield 6"];
+        featured = names.map(function(name){
+          return games.find(function(game){ return game.name === name; });
+        }).filter(Boolean);
+        if(featured.length < 3) featured = games.slice(0,3);
+        heroIndex.replaceChildren();
+        featured.forEach(function(_,index){
+          var button = document.createElement("button");
+          button.type = "button";
+          button.setAttribute("aria-label","Show featured game " + (index + 1));
+          button.addEventListener("click",function(){ setFeatured(index); });
+          heroIndex.appendChild(button);
+        });
+        setFeatured(0);
+      }
+
+      function setFeatured(index){
+        if(!featured.length) return;
+        featuredIndex = index % featured.length;
+        var game = featured[featuredIndex];
+        selectedGame = game;
+        hero.style.backgroundImage = "url('" + imageFor(game,true).replace(/'/g,"%27") + "')";
+        setText(heroTitle,game.name);
+        makeTagList(heroTags,game.tags);
+        Array.prototype.forEach.call(heroIndex.children,function(button,buttonIndex){
+          button.classList.toggle("active",buttonIndex === featuredIndex);
+        });
+      }
+
+      function renderFilters(){
+        var categoryList = ["All","Action","Adventure","RPG","3A","Multiplayer","Shooting","Sports","Indie"];
+        filters.replaceChildren();
+        categoryList.forEach(function(category){
+          var button = document.createElement("button");
+          button.className = "filter" + (category === "All" ? " active" : "");
+          button.type = "button";
+          button.textContent = category;
+          button.addEventListener("click",function(){
+            currentCategory = category;
+            Array.prototype.forEach.call(filters.children,function(item){ item.classList.toggle("active",item === button); });
+            renderSearch();
+          });
+          filters.appendChild(button);
+        });
+      }
+
+      function renderSearch(){
+        var query = searchInput.value.trim().toLowerCase();
+        var filtering = query.length > 0 || currentCategory !== "All";
+        if(!filtering){
+          rows.style.display = "block";
+          searchResults.classList.remove("active");
+          return;
+        }
+        var matches = games.filter(function(game){
+          var haystack = (game.name + " " + (game.tags || []).join(" ")).toLowerCase();
+          var categoryOkay = currentCategory === "All" || tagMatch(game,currentCategory);
+          return categoryOkay && (!query || haystack.indexOf(query) !== -1);
+        });
+        rows.style.display = "none";
+        searchResults.classList.add("active");
+        resultGrid.replaceChildren();
+        setText(resultLabel,query ? "Search / " + query : "Category / " + currentCategory);
+        setText(resultCount,matches.length + (matches.length === 1 ? " title" : " titles"));
+        if(!matches.length){
+          var empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "No signal found";
+          resultGrid.appendChild(empty);
+        } else {
+          matches.forEach(function(game){ resultGrid.appendChild(createCard(game)); });
+        }
+      }
+
+      function openDrawer(game){
+        selectedGame = game;
+        drawerImage.src = imageFor(game,true);
+        drawerImage.alt = "";
+        setText(drawerTitle,game.name);
+        setText(drawerCode,"GAME / " + String(game.game_key).toUpperCase());
+        setText(drawerDesc,String(game.description || "").slice(0,190));
+        makeTagList(drawerTags,game.tags);
+        drawerWrap.classList.add("open");
+        drawerWrap.setAttribute("aria-hidden","false");
+        document.body.style.overflow = "hidden";
+        document.getElementById("drawerClose").focus();
+      }
+
+      function closeDrawer(){
+        drawerWrap.classList.remove("open");
+        drawerWrap.setAttribute("aria-hidden","true");
+        if(!playerOpen) document.body.style.overflow = "";
+      }
+
+      function stage(number,label,text,note){
+        var segments = loaderSegments.querySelectorAll("i");
+        Array.prototype.forEach.call(segments,function(segment,index){ segment.classList.toggle("on",index < number); });
+        setText(loaderLabel,"Stage " + String(number).padStart(2,"0") + " / 04");
+        setText(loaderText,text);
+        setText(queueNote,note || "");
+        setText(playerState,label);
+        playerState.classList.toggle("live",label === "LIVE");
+      }
+
+      function resetPlayer(game){
+        playerStage.classList.remove("ready");
+        sessionLoader.classList.remove("hidden");
+        gameFrame.src = "about:blank";
+        retryButton.classList.remove("show");
+        selectedGame = game;
+        activeUuid = null;
+        clearInterval(keepAliveTimer);
+        setText(playerTitle,game.name);
+        stage(1,"ALLOCATING","Allocating cloud node","");
+      }
+
+      function showPlayer(game){
+        closeDrawer();
+        playerOpen = true;
+        player.classList.add("open");
+        player.setAttribute("aria-hidden","false");
+        document.body.style.overflow = "hidden";
+        resetPlayer(game);
+      }
+
+      async function responseError(response){
+        try{
+          var data = await response.json();
+          return data.error || "Request failed.";
+        }catch(_){ return "Request failed."; }
+      }
+
+      async function createSession(game){
+        showPlayer(game);
+        try{
+          var response = await fetch("/api/stratus/create",{
+            method:"POST",
+            headers:{"content-type":"application/json"},
+            body:JSON.stringify({game_key:game.game_key})
+          });
+          if(!response.ok) throw new Error(await responseError(response));
+          if(!response.body) throw new Error("Cloud stream unavailable.");
+
+          var reader = response.body.getReader();
+          var decoder = new TextDecoder();
+          var buffer = "";
+          var routed = false;
+
+          while(true){
+            var packet = await reader.read();
+            buffer += decoder.decode(packet.value || new Uint8Array(),{stream:!packet.done});
+            var lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+            for(var i=0;i<lines.length;i++){
+              if(!lines[i].trim()) continue;
+              var event = JSON.parse(lines[i]);
+              if(event.status === "creating_account") stage(1,"ALLOCATING","Allocating cloud node","");
+              if(event.status === "account_ready") stage(2,"AUTHENTICATING","Node authenticated","");
+              if(event.status === "requesting_game") stage(2,"REQUESTING","Requesting game slot","");
+              if(event.status === "queue"){
+                activeUuid = event.uuid;
+                stage(2,"QUEUED","Waiting for open node","Queue position " + (event.queue_pos || "—"));
+                routed = true;
+                await pollQueue(event.uuid);
+                return;
+              }
+              if(event.status === "finished_queue"){
+                activeUuid = event.uuid;
+                routed = true;
+                await activateSession(event.uuid);
+                return;
+              }
+              if(event.status === "error") throw new Error(event.error || "Session failed.");
+            }
+            if(packet.done) break;
+          }
+          if(!routed) throw new Error("Cloud node did not return a session.");
+        }catch(error){
+          showSessionError(error);
+        }
+      }
+
+      async function pollQueue(uuid){
+        while(playerOpen && activeUuid === uuid){
+          await new Promise(function(resolve){ setTimeout(resolve,3600); });
+          var response = await fetch("/api/stratus/queue?uuid=" + encodeURIComponent(uuid),{cache:"no-store"});
+          if(!response.ok) throw new Error(await responseError(response));
+          var data = await response.json();
+          if(data.status === "finished_queue"){
+            await activateSession(uuid);
+            return;
+          }
+          stage(2,"QUEUED","Waiting for open node","Queue position " + (data.queue_pos || "—"));
+        }
+      }
+
+      async function activateSession(uuid){
+        stage(3,"CONNECTING","Opening secure stream","");
+        var response = await fetch("/api/stratus/start",{
+          method:"POST",
+          headers:{"content-type":"application/json"},
+          body:JSON.stringify({uuid:uuid})
+        });
+        if(!response.ok) throw new Error(await responseError(response));
+        await response.json();
+        if(!playerOpen || activeUuid !== uuid) return;
+        gameFrame.src = API_BASE + "/cloud/v1/embed?id=" + encodeURIComponent(uuid);
+        playerStage.classList.add("ready");
+        sessionLoader.classList.add("hidden");
+        stage(4,"LIVE","Stream active","");
+        keepAliveTimer = setInterval(function(){ pingSession(uuid); },15000);
+      }
+
+      async function pingSession(uuid){
+        if(!playerOpen || activeUuid !== uuid) return;
+        try{
+          var response = await fetch("/api/stratus/ping",{
+            method:"POST",
+            headers:{"content-type":"application/json"},
+            body:JSON.stringify({uuid:uuid}),
+            cache:"no-store"
+          });
+          if(!response.ok) throw new Error("Session ended.");
+        }catch(error){
+          clearInterval(keepAliveTimer);
+          showSessionError(error);
+        }
+      }
+
+      function showSessionError(error){
+        playerStage.classList.remove("ready");
+        sessionLoader.classList.remove("hidden");
+        stage(1,"OFFLINE","Session failed",String(error && error.message ? error.message : error));
+        retryButton.classList.add("show");
+      }
+
+      async function quitSession(){
+        var uuid = activeUuid;
+        activeUuid = null;
+        clearInterval(keepAliveTimer);
+        gameFrame.src = "about:blank";
+        if(uuid){
+          try{
+            await fetch("/api/stratus/quit",{
+              method:"POST",
+              headers:{"content-type":"application/json"},
+              body:JSON.stringify({uuid:uuid}),
+              keepalive:true
+            });
+          }catch(_){}
+        }
+      }
+
+      async function closePlayer(){
+        playerOpen = false;
+        player.classList.remove("open");
+        player.setAttribute("aria-hidden","true");
+        document.body.style.overflow = "";
+        await quitSession();
+      }
+
+      async function fetchCatalog(){
+        var remoteController = new AbortController();
+        var timer = setTimeout(function(){ remoteController.abort(); },3500);
+        try{
+          var remote = await fetch(CATALOG_URL,{cache:"no-store",signal:remoteController.signal});
+          if(!remote.ok) throw new Error("remote");
+          var remoteGames = await remote.json();
+          if(!Array.isArray(remoteGames)) throw new Error("shape");
+          return remoteGames;
+        }catch(_){
+          var local = await fetch("/games.json",{cache:"no-store"});
+          if(!local.ok) throw new Error("Catalog unavailable.");
+          return local.json();
+        }finally{
+          clearTimeout(timer);
+        }
+      }
+
+      async function init(){
+        renderSkeletons();
+        renderFilters();
+        try{
+          var catalog = await fetchCatalog();
+          games = catalog.filter(validGame);
+          setText(document.getElementById("gameCount"),games.length);
+          setText(document.getElementById("footerCount"),games.length + " titles / synced");
+          renderRows();
+          chooseFeatured();
+        }catch(_){
+          rows.replaceChildren();
+          var empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "Catalog signal unavailable";
+          rows.appendChild(empty);
+          setText(document.getElementById("footerCount"),"Catalog offline");
+        }
+      }
+
+      heroPlay.addEventListener("click",function(){ if(featured[featuredIndex]) createSession(featured[featuredIndex]); });
+      document.getElementById("drawerPlay").addEventListener("click",function(){ if(selectedGame) createSession(selectedGame); });
+      document.getElementById("drawerClose").addEventListener("click",closeDrawer);
+      drawerWrap.addEventListener("click",function(event){ if(event.target === drawerWrap) closeDrawer(); });
+      searchInput.addEventListener("input",renderSearch);
+      document.getElementById("searchJump").addEventListener("click",function(){
+        document.getElementById("library").scrollIntoView({behavior:"smooth"});
+        setTimeout(function(){ searchInput.focus(); },350);
+      });
+      document.querySelectorAll("[data-jump]").forEach(function(button){
+        button.addEventListener("click",function(){
+          document.getElementById(button.dataset.jump).scrollIntoView({behavior:"smooth",block:"start"});
+        });
+      });
+      document.addEventListener("keydown",function(event){
+        if((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k"){
+          event.preventDefault();
+          document.getElementById("library").scrollIntoView({behavior:"smooth"});
+          searchInput.focus();
+        }
+        if(event.key === "Escape"){
+          if(playerOpen) closePlayer();
+          else closeDrawer();
+        }
+      });
+      document.getElementById("exitButton").addEventListener("click",closePlayer);
+      document.getElementById("fullscreenButton").addEventListener("click",function(){
+        if(playerStage.requestFullscreen) playerStage.requestFullscreen();
+      });
+      retryButton.addEventListener("click",function(){ if(selectedGame) createSession(selectedGame); });
+      gameFrame.addEventListener("load",function(){
+        if(gameFrame.src !== "about:blank" && playerOpen){
+          playerState.classList.add("live");
+          setText(playerState,"LIVE");
+        }
+      });
+      window.addEventListener("pagehide",function(){
+        if(activeUuid){
+          navigator.sendBeacon("/api/stratus/quit",JSON.stringify({uuid:activeUuid}));
+        }
+      });
+
+      init();
+    })();
+  </script>
+</body>
+</html>
